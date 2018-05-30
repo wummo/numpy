@@ -390,7 +390,8 @@ def polyder(p, m=1):
         val = poly1d(val)
     return val
 
-def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
+def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False,
+            absolute_weights=False):
     """
     Least squares polynomial fit.
 
@@ -423,6 +424,19 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     cov : bool, optional
         Return the estimate and the covariance matrix of the estimate
         If full is True, then cov is not returned.
+    absolute_weights: bool, optional
+        If True, `w` is used in an absolute sense and the estimated parameter
+        covariance `V` reflects these absolute values. This is usefull, if
+        `w` is 1/sigma, where sigma is the true 1-sigma error.
+
+        If False, only the relative magnitudes of the `w` values matter.
+        The returned parameter covariance matrix `V` is based on scaling
+        `w` by a constant factor. This constant is set by demanding that the
+        reduced `chisq` for the parameters `p` when using the
+        *scaled* `sigma` equals unity. In other words, `sigma` is scaled to
+        match the sample variance of the residuals after the fit.
+        Mathematically, ``V(absolute_weights=False) = V(absolute_weights=True)
+        * chisq(p)/(M-deg-1)``
 
     Returns
     -------
@@ -590,14 +604,13 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False):
     elif cov:
         Vbase = inv(dot(lhs.T, lhs))
         Vbase /= NX.outer(scale, scale)
-        # Some literature ignores the extra -2.0 factor in the denominator, but
-        #  it is included here because the covariance of Multivariate Student-T
-        #  (which is implied by a Bayesian uncertainty analysis) includes it.
-        #  Plus, it gives a slightly more conservative estimate of uncertainty.
-        if len(x) <= order + 2:
-            raise ValueError("the number of data points must exceed order + 2 "
-                             "for Bayesian estimate the covariance matrix")
-        fac = resids / (len(x) - order - 2.0)
+        if absolute_weights:
+            fac = 1.
+        else:
+            if len(x) <= order:
+                raise ValueError("the number of data points must exceed order "
+                                 "for estimate the covariance matrix")
+            fac = resids / (len(x) - order)
         if y.ndim == 1:
             return c, Vbase * fac
         else:
