@@ -141,6 +141,11 @@ class TestDocs(object):
         assert_raises(ValueError, np.polyfit,
                       [1], [1], deg=0, cov=True)
 
+        # Check exception when option absolute_weights is True, but  no weights
+        # are given
+        assert_raises(ValueError, np.polyfit,
+                      x, y, deg=1, absolute_weights=True)
+
         # check 1D case
         m, cov = np.polyfit(x, y+err, 2, cov=True)
         est = [3.8571, 0.2857, 1.619]
@@ -156,6 +161,13 @@ class TestDocs(object):
                [-5.0052,  6.8067, -0.9089],
                [ 0.4878, -0.9089,  0.3337]]
         assert_almost_equal(val, cov2, decimal=4)
+
+        m3, cov3 = np.polyfit(x, y+err, 2, w=weights, cov=True, absolute_weights=True)
+        assert_almost_equal([4.8927, -1.0177, 1.7768], m3, decimal=4)
+        val = [[ 0.1473, -0.1677,  0.0163],
+               [-0.1677,  0.228 , -0.0304],
+               [ 0.0163, -0.0304,  0.0112]]
+        assert_almost_equal(val, cov3, decimal=4)
 
         # check 2D (n,1) case
         y = y[:, np.newaxis]

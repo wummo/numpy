@@ -566,6 +566,8 @@ def polyfit(x, y, deg, rcond=None, full=False, w=None, cov=False,
         raise TypeError("expected 1D or 2D array for y")
     if x.shape[0] != y.shape[0]:
         raise TypeError("expected x and y to have same length")
+    if absolute_weights and (w is None):
+        raise ValueError("option absolute_weights=True but w=None")
 
     # set rcond
     if rcond is None:
