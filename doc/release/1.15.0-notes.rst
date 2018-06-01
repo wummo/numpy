@@ -193,7 +193,7 @@ combining these 5 compiled builds products into a single "fat" binary.
 ``return_indices`` keyword added for ``np.intersect1d``
 -------------------------------------------------------
 New keyword ``return_indices`` returns the indices of the two input arrays
-that correspond to the common elements. 
+that correspond to the common elements.
 
 ``np.quantile`` and ``np.nanquantile``
 --------------------------------------
@@ -401,6 +401,24 @@ is the same as::
 ``np.put_along_axis`` acts as the dual operation for writing to these indices
 within an array.
 
+New option ``absolute_weights'' in ``np.polyfit''
+-------------------------------------------------
+Like ``absolute_sigma'' in ``scipy.optimize.curve_fit`` a boolean option
+``absoulte_weights'' is added to ``np.polyfit''. If set, it disables the scaling of
+the covariance matrix completely. This would be useful in occasions, where the
+weights are given by 1/sigma with sigma being the (known) standard errors of
+(Gaussian distributed) data points, in which case the unscaled matrix is already
+a correct estimate for the covariance matrix. In case ``absolute_weights'' is set
+to true, but no weights are given, a ``ValueError'' is thrown.
+
 
 Changes
 =======
+
+The scaling of the covariance matrix in ``np.polyfit`` is different
+----------------------------------------------------------------
+So far, ``np.polyfit`` used a non-standard factor in the scaling of the the
+covariance matrix. Namely, rather than using the standard chisq/(M-N), it
+scales it with chisq/(M-N-2) where M is the number of data points and N is the
+number of parameters.  This scaling is inconsistent with other fitting programs
+such as e.g. ``scipy.optimize.curve_fit`` and was changed to chisq/(M-N).
